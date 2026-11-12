@@ -1,0 +1,41 @@
+{
+  "meta": {
+    "note_tr": "Değerler; World Gold Council, The Silver Institute / Metals Focus ve World Platinum Investment Council raporlarından derlenmiş yuvarlanmış yaklaşık rakamlardır. Platinde endüstriyel talep otomotiv dahildir. Diğer talep: mücevher, gümüş eşya, fotoğraf vb. 2025 tahminidir.",
+    "note_en": "Figures are rounded approximations compiled from World Gold Council, The Silver Institute / Metals Focus and World Platinum Investment Council reports. Platinum industrial demand includes automotive. Other demand: jewellery, silverware, photography, etc. 2025 is an estimate.",
+    "sources": ["World Gold Council", "The Silver Institute / Metals Focus", "World Platinum Investment Council"],
+    "estimate_years": [2025]
+  },
+  "years": [2021, 2022, 2023, 2024, 2025],
+  "metals": {
+    "gold": {
+      "unit_tr": "ton",
+      "unit_en": "tonnes",
+      "mine_production": [3568, 3627, 3644, 3661, 3672],
+      "recycling": [1136, 1140, 1237, 1370, 1404],
+      "industrial_demand": [330, 309, 298, 326, 323],
+      "investment_cb_demand": [1850, 2332, 2227, 2595, 3060],
+      "other_demand": [2230, 2190, 2190, 1880, 1600],
+      "balance": [294, -64, 166, 230, 93]
+    },
+    "silver": {
+      "unit_tr": "milyon ons",
+      "unit_en": "Moz",
+      "mine_production": [829, 831, 829, 820, 835],
+      "recycling": [175, 180, 178, 194, 200],
+      "industrial_demand": [510, 556, 654, 681, 677],
+      "investment_cb_demand": [278, 333, 243, 190, 190],
+      "other_demand": [267, 375, 316, 292, 263],
+      "balance": [-51, -253, -206, -149, -95]
+    },
+    "platinum": {
+      "unit_tr": "bin ons",
+      "unit_en": "koz",
+      "mine_production": [6297, 5511, 5606, 5601, 5450],
+      "recycling": [1825, 1610, 1571, 1488, 1560],
+      "industrial_demand": [5080, 5250, 5880, 5980, 5700],
+      "investment_cb_demand": [-55, -549, 417, 224, 300],
+      "other_demand": [1997, 1870, 1960, 1880, 1860],
+      "balance": [1100, 550, -1080, -995, -850]
+    }
+  }
+}

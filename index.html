@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Değerli ve Stratejik Metaller Piyasa Panosu</title>
+  <meta name="description" content="Altın, gümüş, platin, paladyum ve bakır için çift dilli (TR/EN) piyasa panosu.">
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js" defer></script>
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <h1 data-i18n="title">Değerli ve Stratejik Metaller Piyasa Panosu</h1>
+      <p data-i18n="subtitle">Altın, gümüş, platin, paladyum ve bakır için günlük güncellenen fiyatlar ve göstergeler</p>
+    </div>
+    <div class="controls">
+      <div class="seg" role="group" aria-label="Dil / Language">
+        <button type="button" data-lang="tr">TR</button>
+        <button type="button" data-lang="en">EN</button>
+      </div>
+      <div class="seg" role="group" aria-label="Birim / Unit">
+        <button type="button" data-unit="usd_oz" data-i18n="unit_usd_oz">Ons USD</button>
+        <button type="button" data-unit="try_g" data-i18n="unit_try_g">Gram TRY</button>
+        <button type="button" data-unit="eur_g" data-i18n="unit_eur_g">Gram EUR</button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div id="status" class="status" hidden></div>
+
+    <section class="cards">
+      <article class="card accent">
+        <h3 data-i18n="card_ratio">Altın / Gümüş Rasyosu</h3>
+        <div class="big" id="ratioVal">–</div>
+        <div class="sub" id="ratioSub"></div>
+      </article>
+      <article class="card">
+        <h3 data-i18n="card_usdtry">USD / TRY</h3>
+        <div class="big" id="usdtryVal">–</div>
+        <div class="sub" data-i18n="fx_sub">Son kapanış</div>
+      </article>
+      <article class="card">
+        <h3 data-i18n="card_eurusd">EUR / USD</h3>
+        <div class="big" id="eurusdVal">–</div>
+        <div class="sub" data-i18n="fx_sub">Son kapanış</div>
+      </article>
+      <article class="card">
+        <h3 data-i18n="card_updated">Son güncelleme</h3>
+        <div class="big small" id="updatedVal">–</div>
+        <div class="sub" id="updatedSub"></div>
+      </article>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2><span data-i18n="sec_prices">Fiyatlar ve Değişimler</span></h2>
+        <p class="muted" data-i18n="prices_note"></p>
+      </div>
+      <div class="table-wrap">
+        <table class="prices">
+          <thead>
+            <tr>
+              <th data-i18n="th_cmp">Grafik</th>
+              <th class="left" data-i18n="th_metal">Metal</th>
+              <th><span data-i18n="th_price">Fiyat</span> <small id="priceUnit"></small></th>
+              <th data-i18n="th_w">7 Gün</th>
+              <th data-i18n="th_m">30 Gün</th>
+              <th data-i18n="th_y">1 Yıl</th>
+              <th data-i18n="th_avg">5Y Ortalama</th>
+              <th data-i18n="th_vs">5Y Ort.'a Göre</th>
+              <th data-i18n="th_other">Diğer birimler (USD)</th>
+            </tr>
+          </thead>
+          <tbody id="priceBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head row">
+        <div>
+          <h2 data-i18n="sec_chart">Karşılaştırmalı Performans</h2>
+          <p class="muted" data-i18n="chart_sub"></p>
+        </div>
+        <div class="seg small" role="group" aria-label="Dönem / Period">
+          <button type="button" data-period="1m" data-i18n="p_1m">1A</button>
+          <button type="button" data-period="6m" data-i18n="p_6m">6A</button>
+          <button type="button" data-period="1y" data-i18n="p_1y">1Y</button>
+          <button type="button" data-period="5y" data-i18n="p_5y">5Y</button>
+        </div>
+      </div>
+      <p id="chartHint" class="hint" data-i18n="chart_hint" hidden></p>
+      <div class="chart-box tall"><canvas id="lineChart"></canvas></div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2 data-i18n="sec_sd">Arz – Talep Dengesi (2021–2025)</h2>
+        <p class="muted" id="sdNote"></p>
+      </div>
+      <div class="grid2">
+        <div>
+          <h3 class="chart-title" data-i18n="sd_bal_title">Net denge — toplam arzın yüzdesi</h3>
+          <div class="chart-box"><canvas id="balChart"></canvas></div>
+        </div>
+        <div>
+          <div class="row">
+            <h3 class="chart-title"><span data-i18n="sd_comp_title">Arz ve talep bileşenleri</span> <small id="sdUnit"></small></h3>
+            <div class="seg small" role="group" aria-label="Metal">
+              <button type="button" data-sd="gold" data-i18n="gold">Altın</button>
+              <button type="button" data-sd="silver" data-i18n="silver">Gümüş</button>
+              <button type="button" data-sd="platinum" data-i18n="platinum">Platin</button>
+            </div>
+          </div>
+          <div class="chart-box"><canvas id="compChart"></canvas></div>
+          <div class="chips" id="sdChips"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2 data-i18n="sec_explain">Kavramlar — kısaca</h2>
+      <div class="explain">
+        <article><h4 data-i18n="exp_mine_t"></h4><p data-i18n="exp_mine"></p></article>
+        <article><h4 data-i18n="exp_rec_t"></h4><p data-i18n="exp_rec"></p></article>
+        <article><h4 data-i18n="exp_ind_t"></h4><p data-i18n="exp_ind"></p></article>
+        <article><h4 data-i18n="exp_inv_t"></h4><p data-i18n="exp_inv"></p></article>
+        <article><h4 data-i18n="exp_bal_t"></h4><p data-i18n="exp_bal"></p></article>
+        <article><h4 data-i18n="exp_ratio_t"></h4><p data-i18n="exp_ratio"></p></article>
+        <article><h4 data-i18n="exp_idx_t"></h4><p data-i18n="exp_idx"></p></article>
+      </div>
+    </section>
+
+    <p class="source muted" data-i18n="source_line"></p>
+  </main>
+
+  <footer class="disclaimer">
+    <p><strong>TR:</strong> Bu sayfa yalnızca bilgilendirme amaçlıdır, yatırım tavsiyesi değildir.</p>
+    <p><strong>EN:</strong> This page is for informational purposes only and does not constitute investment advice.</p>
+  </footer>
+</body>
+</html>
