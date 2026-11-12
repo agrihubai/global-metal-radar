@@ -100,7 +100,8 @@ const state = {
   unit: ["usd_oz", "try_g", "eur_g"].includes(store.get("mp_unit", "usd_oz")) ? store.get("mp_unit", "usd_oz") : "usd_oz",
   period: "1y",
   selected: new Set(["gold", "silver"]),
-  sdMetal: "gold"
+  sdMetal: "gold",
+  tab: store.get("mp_tab", "market") === "links" ? "links" : "market"
 };
 
 let DATA = null, SD = null, lineChart = null, balChart = null, compChart = null;
@@ -165,6 +166,9 @@ function applyI18n() {
   mark("[data-unit]", "unit", state.unit);
   mark("[data-period]", "period", state.period);
   mark("[data-sd]", "sd", state.sdMetal);
+  mark("[data-tab]", "tab", state.tab);
+  $("tab-market").hidden = state.tab !== "market";
+  $("tab-links").hidden = state.tab !== "links";
   setText("priceUnit", `(${t("unit_long_" + state.unit)})`);
   const st = $("status");
   st.hidden = errors.size === 0;
@@ -347,9 +351,17 @@ function renderAll() {
   renderTable();
   renderLine();
   renderSD();
+  if (typeof window.renderLinks === "function") window.renderLinks();
 }
 
 function bindEvents() {
+  document.querySelectorAll("[data-tab]").forEach((b) => b.addEventListener("click", () => {
+    if (state.tab === b.dataset.tab) return;
+    state.tab = b.dataset.tab; store.set("mp_tab", state.tab);
+    applyI18n();
+    if (state.tab === "market") { renderLine(); renderSD(); }
+    else if (typeof window.renderLinks === "function") window.renderLinks();
+  }));
   document.querySelectorAll("[data-lang]").forEach((b) => b.addEventListener("click", () => {
     state.lang = b.dataset.lang; store.set("mp_lang", state.lang); renderAll();
   }));
@@ -364,7 +376,10 @@ function bindEvents() {
     state.sdMetal = b.dataset.sd; applyI18n(); renderSD();
   }));
   try {
-    window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => { renderLine(); renderSD(); });
+    window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
+      renderLine(); renderSD();
+      if (typeof window.renderLinks === "function") window.renderLinks();
+    });
   } catch { /* eski tarayıcılar */ }
 }
 

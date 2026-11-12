@@ -1,0 +1,64 @@
+{
+  "meta": {
+    "note_tr": "Taslak hipotezlerdir. Onaylandığında status alanı \"pending\" yapılır; kontrol tarihinde \"held\", \"partial\", \"failed\" veya \"nodata\" olarak işaretlenir.",
+    "note_en": "Draft hypotheses. Once approved, status becomes \"pending\"; on the check date it is marked \"held\", \"partial\", \"failed\" or \"nodata\"."
+  },
+  "items": [
+    {
+      "id": "MT1",
+      "status": "draft",
+      "due": "2027-06-30",
+      "claim": "Bakır, gübre fiyatlarından önce hareket eder.",
+      "claim_en": "Copper moves before fertilizer prices.",
+      "reason": "İkisini de küresel sanayi döngüsü ve enerji maliyeti sürükler; bakır borsada her gün fiyatlanırken gübre fiyatı üretici fiyatlarına aylar içinde yansır.",
+      "reason_en": "Both are driven by the global industrial cycle and energy costs; copper is priced daily on exchanges, while fertilizer feeds into producer prices over months.",
+      "expect": "Son 60 ayda en güçlü ilişki, bakırın 1–6 ay önde olduğu bir gecikmede ve r ≥ 0,25.",
+      "expect_en": "Over the last 60 months, the strongest link is at a lag where copper leads by 1–6 months, with r ≥ 0.25.",
+      "cond": "En güçlü gecikme 0 ya da gübre öndeyse, veya r < 0,15 ise hipotez tutmaz.",
+      "cond_en": "If the strongest lag is 0 or fertilizer leads, or r < 0.15, the hypothesis fails.",
+      "auto": { "type": "leadlag", "metal": "copper", "ag": "fert" }
+    },
+    {
+      "id": "MT2",
+      "status": "draft",
+      "due": "2027-06-30",
+      "claim": "Gıda fiyatları altından önce hareket eder: gıda enflasyonu birkaç ay içinde altına korunma talebi olarak yansır.",
+      "claim_en": "Food prices move before gold: food inflation shows up within a few months as hedging demand for gold.",
+      "reason": "Gıda, enflasyonun en hızlı hissedilen kalemidir; enflasyon beklentisi yükseldiğinde yatırımcılar altına yönelir.",
+      "reason_en": "Food is the part of inflation people feel first; when inflation expectations rise, investors turn to gold.",
+      "expect": "Son 60 ayda en güçlü ilişki, gıda endeksinin 1–6 ay önde olduğu bir gecikmede ve r ≥ 0,20.",
+      "expect_en": "Over the last 60 months, the strongest link is at a lag where the food index leads by 1–6 months, with r ≥ 0.20.",
+      "cond": "Altın öndeyse ya da en güçlü |r| < 0,15 ise hipotez tutmaz; o zaman iki fiyatı ortak bir sürücünün (ör. dolar) taşıdığı düşünülmeli.",
+      "cond_en": "If gold leads or the strongest |r| < 0.15, the hypothesis fails; a common driver (e.g. the dollar) is then the likelier explanation.",
+      "auto": { "type": "leadlag", "metal": "gold", "ag": "food" }
+    },
+    {
+      "id": "MT3",
+      "status": "draft",
+      "due": "2027-11-30",
+      "claim": "Altının buğday cinsinden değeri uçlarda kalıcı olmaz; 5 yıllık ortalamasına doğru geri döner.",
+      "claim_en": "Gold's value in wheat does not stay at extremes; it reverts towards its 5-year average.",
+      "reason": "Biri finansal güvenli liman, diğeri temel gıda; uzun dönemde ikisi de genel fiyat düzeyine bağlı olduğundan aradaki makas sürekli açılamaz.",
+      "reason_en": "One is a financial safe haven, the other a staple food; both are tied to the general price level in the long run, so the gap cannot widen forever.",
+      "expect": "Oran 5 yıllık ortalamanın %30'dan fazla üstündeyse, 12 ay içinde sapma en az yarıya iner.",
+      "expect_en": "If the ratio is more than 30% above its 5-year average, the deviation at least halves within 12 months.",
+      "cond": "Kontrol tarihinde sapma, başlangıçtaki sapmanın yarısından büyükse hipotez tutmaz.",
+      "cond_en": "If on the check date the deviation is more than half of the starting deviation, the hypothesis fails.",
+      "auto": { "type": "ratio", "ratio": "gold_wheat" }
+    },
+    {
+      "id": "MT4",
+      "status": "draft",
+      "due": "2027-06-30",
+      "claim": "Kontrol: kakao fiyatı metallerle ilişkili değildir.",
+      "claim_en": "Control: cocoa prices are not related to metals.",
+      "reason": "Kakao fiyatını büyük ölçüde Batı Afrika'daki hasat ve bitki hastalıkları belirler. Bu satır, haritadaki her renkli hücrenin gerçek bir bağlantı olmadığını hatırlatan bir sınamadır.",
+      "reason_en": "Cocoa prices are set mostly by West African harvests and crop disease. This row is a test reminding that not every coloured cell on the map is a real link.",
+      "expect": "Son 60 ayda beş metalle de aynı ay korelasyonu |r| < 0,20.",
+      "expect_en": "Over the last 60 months, same-month correlation with all five metals is |r| < 0.20.",
+      "cond": "Herhangi bir metalle |r| ≥ 0,30 çıkarsa ya ortak bir sürücü vardır ya da ilişki tesadüftür; ayrıca incelenmelidir.",
+      "cond_en": "If any metal shows |r| ≥ 0.30, there is either a common driver or a coincidence; it needs a closer look.",
+      "auto": { "type": "corr_max", "ag": "cocoa" }
+    }
+  ]
+}

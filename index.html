@@ -8,6 +8,7 @@
   <link rel="stylesheet" href="style.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js" defer></script>
   <script src="app.js" defer></script>
+  <script src="links.js" defer></script>
 </head>
 <body>
   <header class="topbar">
@@ -30,6 +31,13 @@
 
   <main>
     <div id="status" class="status" hidden></div>
+
+    <nav class="tabs" role="tablist" aria-label="Sekmeler / Tabs">
+      <button type="button" role="tab" data-tab="market" data-i18n="tab_market">Piyasa</button>
+      <button type="button" role="tab" data-tab="links" data-i18n="tab_links">Metal × Tarım</button>
+    </nav>
+
+    <div id="tab-market" class="tab-pane">
 
     <section class="cards">
       <article class="card accent">
@@ -135,6 +143,60 @@
     </section>
 
     <p class="source muted" data-i18n="source_line"></p>
+    </div>
+
+    <div id="tab-links" class="tab-pane" hidden>
+      <section class="panel">
+        <h2 data-i18n="links_title">Metal × Tarım Bağlantıları</h2>
+        <p class="muted intro" data-i18n="links_intro"></p>
+        <p id="linksStatus" class="hint" hidden></p>
+      </section>
+
+      <section class="cards cards3" id="ratioCards"></section>
+
+      <section class="panel">
+        <div class="panel-head row">
+          <div>
+            <h2 data-i18n="heat_title">İlişki haritası</h2>
+            <p class="muted" data-i18n="heat_sub"></p>
+          </div>
+          <div class="seg small" role="group" aria-label="Dönem / Period">
+            <button type="button" data-span="all" data-i18n="span_all">2015–bugün</button>
+            <button type="button" data-span="5y" data-i18n="span_5y">Son 5 yıl</button>
+          </div>
+        </div>
+        <div class="table-wrap"><table class="heat" id="heatTable"></table></div>
+      </section>
+
+      <section class="panel" id="lagSection">
+        <div class="panel-head row">
+          <h2 data-i18n="lag_title">Kim önce hareket ediyor?</h2>
+          <div class="pickers">
+            <label><span data-i18n="lbl_metal">Metal</span> <select id="selMetal"></select></label>
+            <label><span data-i18n="lbl_ag">Tarım ürünü</span> <select id="selAg"></select></label>
+          </div>
+        </div>
+        <p class="lag-summary" id="lagSummary"></p>
+        <div class="grid2">
+          <div>
+            <h3 class="chart-title" data-i18n="lag_chart_t">Gecikmeli korelasyon</h3>
+            <div class="chart-box"><canvas id="lagChart"></canvas></div>
+          </div>
+          <div>
+            <h3 class="chart-title" data-i18n="pair_title">Fiyat seyri</h3>
+            <div class="chart-box"><canvas id="pairChart"></canvas></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2 data-i18n="hyp_title">Bağlantı hipotezleri</h2>
+        <p class="muted" data-i18n="hyp_sub"></p>
+        <div class="hyps" id="hypList"></div>
+      </section>
+
+      <p class="source muted" data-i18n="links_source"></p>
+    </div>
   </main>
 
   <footer class="disclaimer">

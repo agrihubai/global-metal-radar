@@ -28,6 +28,7 @@ FX = {"usdtry": "USDTRY=X", "eurusd": "EURUSD=X"}
 PERIODS = {"w": 7, "m": 30, "y": 365}
 FIVE_Y = timedelta(days=5 * 365 + 1)
 OUT = Path(__file__).resolve().with_name("data.json")
+START = "2014-12-01"  # aylik seri 2015 basindan itibaren
 
 
 def num(x, nd=4):
@@ -57,7 +58,7 @@ def download():
     tickers = list(METALS.values()) + list(FX.values())
     close = pd.DataFrame()
     try:
-        raw = yf.download(tickers, period="6y", interval="1d", auto_adjust=False,
+        raw = yf.download(tickers, start=START, interval="1d", auto_adjust=False,
                           progress=False, threads=True)
         if not raw.empty:
             close = raw["Close"].copy() if isinstance(raw.columns, pd.MultiIndex) else raw[["Close"]].copy()
@@ -69,7 +70,7 @@ def download():
     for t in tickers:
         if t not in close.columns or close[t].dropna().empty:
             try:
-                h = yf.Ticker(t).history(period="6y", interval="1d", auto_adjust=False)["Close"]
+                h = yf.Ticker(t).history(start=START, interval="1d", auto_adjust=False)["Close"]
                 h.index = _naive(h.index)
                 h = h[~h.index.duplicated(keep="last")]
                 if t in close.columns:
@@ -155,6 +156,14 @@ def build(close):
         ratio = {"value": num(r.iloc[-1], 2), "avg5y": num(ch["avg5y"], 2),
                  "change_30d": ch["m"], "change_1y": ch["y"]}
 
+    # Aylik ortalamalar (Emtia panosu ile karsilastirma icin; tamamlanmamis ay haric)
+    mon = usd_oz[usd_oz.index >= "2015-01-01"].resample("MS").mean()
+    mon = mon[mon.index < last_d.to_period("M").to_timestamp()]
+    monthly = {
+        "dates": [d.strftime("%Y-%m") for d in mon.index],
+        "usd_oz": {k: [num(v, 4) for v in mon[k]] for k in mon.columns},
+    }
+
     hist = close[close.index >= last_d - FIVE_Y]
     hu = usd_oz.loc[hist.index]
     history = {
@@ -173,6 +182,7 @@ def build(close):
         "gold_silver_ratio": ratio,
         "metals": metals,
         "history": history,
+        "monthly": monthly,
     }
 
 
