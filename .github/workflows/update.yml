@@ -2,7 +2,7 @@ name: Update market data
 
 on:
   schedule:
-    - cron: "17 22 * * *"   # Her gün 22:17 UTC
+    - cron: "23 0,4,8,14,20 * * *"   # Günde 5 kez; GitHub gecikmelerine karşı
   workflow_dispatch:
 
 permissions:
