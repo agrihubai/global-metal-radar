@@ -22,7 +22,7 @@ const I18N = {
     unit_long_usd_oz: "USD / ons", unit_long_try_g: "TRY / gram", unit_long_eur_g: "EUR / gram",
     card_ratio: "Altın / Gümüş Rasyosu",
     ratio_sub: "5Y ort. {avg} · 30 gün {chg}",
-    card_usdtry: "USD / TRY", card_eurusd: "EUR / USD", fx_sub: "Son kapanış",
+    card_usdtry: "USD / TRY", card_eurtry: "EUR / TRY", card_eurusd: "EUR / USD", fx_sub: "Son kapanış",
     card_updated: "Son güncelleme", data_date: "Piyasa verisi: {d}",
     sec_prices: "Fiyatlar ve Değişimler",
     prices_note: "Değişimler seçili birim üzerinden hesaplanır. Karşılaştırma grafiğine eklemek için kutuyu işaretleyin. Bakır fiyatı libreden onsa çevrilmiştir.",
@@ -59,7 +59,7 @@ const I18N = {
     unit_long_usd_oz: "USD / oz", unit_long_try_g: "TRY / gram", unit_long_eur_g: "EUR / gram",
     card_ratio: "Gold / Silver Ratio",
     ratio_sub: "5Y avg. {avg} · 30 days {chg}",
-    card_usdtry: "USD / TRY", card_eurusd: "EUR / USD", fx_sub: "Last close",
+    card_usdtry: "USD / TRY", card_eurtry: "EUR / TRY", card_eurusd: "EUR / USD", fx_sub: "Last close",
     card_updated: "Last update", data_date: "Market data: {d}",
     sec_prices: "Prices & Changes",
     prices_note: "Changes are calculated in the selected unit. Tick a box to add a metal to the comparison chart. Copper is converted from pounds to ounces.",
@@ -182,6 +182,8 @@ function renderCards() {
   setText("ratioVal", fmtNum(r.value, 2));
   setText("ratioSub", t("ratio_sub", { avg: fmtNum(r.avg5y, 1), chg: fmtPct(r.change_30d) }));
   setText("usdtryVal", fmtNum(DATA.fx?.usdtry, 4));
+  const eurtryVal = DATA.fx?.eurtry ?? (DATA.fx?.usdtry != null && DATA.fx?.eurusd != null ? DATA.fx.usdtry * DATA.fx.eurusd : null);
+  setText("eurtryVal", fmtNum(eurtryVal, 4));
   setText("eurusdVal", fmtNum(DATA.fx?.eurusd, 4));
   const up = new Date(DATA.updated);
   setText("updatedVal", isNaN(up) ? "–" : up.toLocaleString(locale(), { dateStyle: "medium", timeStyle: "short" }));

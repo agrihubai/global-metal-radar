@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Degerli ve Stratejik Metaller Piyasa Panosu - veri betigi.
 
-yfinance ile 5 metal + USD/TRY + EUR/USD verisini ceker, birim donusumlerini,
+yfinance ile 5 metal + USD/TRY + EUR/USD + EUR/TRY verisini ceker, birim donusumlerini,
 donemsel degisimleri, 5 yillik ortalamaya gore farki ve Altin/Gumus rasyosunu
 hesaplayip data.json dosyasina yazar.
 """
@@ -24,7 +24,7 @@ METALS = {
     "palladium": "PA=F",
     "copper": "HG=F",  # Yahoo'da USD / libre
 }
-FX = {"usdtry": "USDTRY=X", "eurusd": "EURUSD=X"}
+FX = {"usdtry": "USDTRY=X", "eurusd": "EURUSD=X", "eurtry": "EURTRY=X"}
 PERIODS = {"w": 7, "m": 30, "y": 365}
 FIVE_Y = timedelta(days=5 * 365 + 1)
 OUT = Path(__file__).resolve().with_name("data.json")
@@ -104,7 +104,8 @@ def build(close):
     metal_cols = [t for t in METALS.values() if t in close.columns]
     if not metal_cols:
         raise RuntimeError("Hicbir metal verisi alinamadi.")
-    for t in FX.values():
+    for req_fx in ("usdtry", "eurusd"):
+        t = FX[req_fx]
         if t not in close.columns or close[t].dropna().empty:
             raise RuntimeError(f"Kur verisi alinamadi: {t}")
 
@@ -118,6 +119,10 @@ def build(close):
             usd_oz[key] = s * OZ_G / LB_G if key == "copper" else s
     usdtry = close[FX["usdtry"]]
     eurusd = close[FX["eurusd"]]
+    if FX["eurtry"] in close.columns and not close[FX["eurtry"]].dropna().empty:
+        eurtry = close[FX["eurtry"]].fillna(usdtry * eurusd)
+    else:
+        eurtry = usdtry * eurusd
 
     units = {
         "usd_oz": usd_oz,
@@ -171,6 +176,7 @@ def build(close):
         "usd_oz": {k: [num(v, 4) for v in hu[k]] for k in hu.columns},
         "usdtry": [num(v, 4) for v in usdtry.loc[hist.index]],
         "eurusd": [num(v, 5) for v in eurusd.loc[hist.index]],
+        "eurtry": [num(v, 4) for v in eurtry.loc[hist.index]],
     }
 
     return {
@@ -178,7 +184,11 @@ def build(close):
         "last_date": last_d.strftime("%Y-%m-%d"),
         "source": "Yahoo Finance (yfinance)",
         "constants": {"oz_g": OZ_G, "lb_g": LB_G},
-        "fx": {"usdtry": num(usdtry.dropna().iloc[-1], 4), "eurusd": num(eurusd.dropna().iloc[-1], 5)},
+        "fx": {
+            "usdtry": num(usdtry.dropna().iloc[-1], 4),
+            "eurusd": num(eurusd.dropna().iloc[-1], 5),
+            "eurtry": num(eurtry.dropna().iloc[-1], 4),
+        },
         "gold_silver_ratio": ratio,
         "metals": metals,
         "history": history,
