@@ -231,8 +231,9 @@ function renderTable() {
     const p = md.price || {};
     const gramVal = getGramPriceValue(p);
     const dailyChg = getDailyChange(m, ch);
+    const arrow = dailyChg == null || !isFinite(dailyChg) || dailyChg === 0 ? "" : dailyChg > 0 ? " ▲" : " ▼";
     const closePriceStr = fmtPrice(p[state.unit], state.unit);
-    const closeDailyStr = `${closePriceStr} (${fmtPct(dailyChg)})`;
+    const closeDailyStr = `${closePriceStr} (${fmtPct(dailyChg)}${arrow})`;
     const tr = document.createElement("tr");
     tr.innerHTML = `
       <td><input type="checkbox" data-metal="${m}" ${state.selected.has(m) ? "checked" : ""} aria-label="${t(m)}"></td>
