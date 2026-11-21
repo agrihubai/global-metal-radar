@@ -124,26 +124,11 @@ def build(close):
     else:
         eurtry = usdtry * eurusd
 
-    # Karsilastirma grafiginde secili birime gore endekslenebilen kur serileri:
-    # usd_oz bazinda: USD=1, EUR=EUR/USD, TRY=1/(USD/TRY)
-    # try_g bazinda: TRY=1, USD=USD/TRY, EUR=EUR/TRY
-    # eur_g bazinda: EUR=1, USD=1/(EUR/USD), TRY=1/(EUR/TRY)
-    fx_series_map = {
-        "usd_oz": {
-            "usd": pd.Series(1.0, index=close.index),
-            "eur": eurusd,
-            "try": usdtry.where(usdtry != 0).rdiv(1.0),
-        },
-        "try_g": {
-            "try": pd.Series(1.0, index=close.index),
-            "usd": usdtry,
-            "eur": eurtry,
-        },
-        "eur_g": {
-            "eur": pd.Series(1.0, index=close.index),
-            "usd": eurusd.where(eurusd != 0).rdiv(1.0),
-            "try": eurtry.where(eurtry != 0).rdiv(1.0),
-        },
+    units = {
+        "usd_oz": usd_oz,
+        "usd_g": usd_oz.div(OZ_G),
+        "try_g": usd_oz.div(OZ_G).mul(usdtry, axis=0),
+        "eur_g": usd_oz.div(OZ_G).div(eurusd, axis=0),
     }
 
     last_d = close.index[-1]
@@ -158,8 +143,8 @@ def build(close):
             "usd_oz": num(p_oz, 4),
             "usd_g": num(p_g, 4),
             "usd_kg": num(p_g * 1000, 2),
-            "try_g": num(units_try := (usd_oz[key] / OZ_G * usdtry).dropna().iloc[-1], 4),
-            "eur_g": num(units_eur := (usd_oz[key] / OZ_G / eurusd).dropna().iloc[-1], 4),
+            "try_g": num(units["try_g"][key].dropna().iloc[-1], 4),
+            "eur_g": num(units["eur_g"][key].dropna().iloc[-1], 4),
         }
         if key == "copper":
             price["usd_lb"] = num(close[t].dropna().iloc[-1], 4)
@@ -167,24 +152,7 @@ def build(close):
             "ticker": t,
             "date": s.index[-1].strftime("%Y-%m-%d"),
             "price": price,
-            "changes": {
-                "usd_oz": series_changes(usd_oz[key]),
-                "try_g": series_changes(usd_oz[key] / OZ_G * usdtry),
-                "eur_g": series_changes(usd_oz[key] / OZ_G / eurusd),
-            },
-        }
-
-    currencies = {}
-    for code, ticker, unit_prices in [
-        ("usd", "USD", {"usd_oz": 1.0, "try_g": num(usdtry.dropna().iloc[-1], 4), "eur_g": num(1.0 / eurusd.dropna().iloc[-1], 4)}),
-        ("eur", "EUR/USD", {"usd_oz": num(eurusd.dropna().iloc[-1], 4), "try_g": num(eurtry.dropna().iloc[-1], 4), "eur_g": 1.0}),
-        ("try", "TRY", {"usd_oz": num(1.0 / usdtry.dropna().iloc[-1], 6), "try_g": 1.0, "eur_g": num(1.0 / eurtry.dropna().iloc[-1], 6)}),
-    ]:
-        currencies[code] = {
-            "ticker": ticker,
-            "date": last_d.strftime("%Y-%m-%d"),
-            "price": unit_prices,
-            "changes": {u: series_changes(fx_series_map[u][code]) for u in ("usd_oz", "try_g", "eur_g")},
+            "changes": {u: series_changes(df[key]) for u, df in units.items()},
         }
 
     ratio = None
@@ -224,7 +192,6 @@ def build(close):
         },
         "gold_silver_ratio": ratio,
         "metals": metals,
-        "currencies": currencies,
         "history": history,
         "monthly": monthly,
     }

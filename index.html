@@ -78,7 +78,14 @@
             <tr>
               <th data-i18n="th_cmp">Grafik</th>
               <th class="left" data-i18n="th_metal">Metal</th>
-              <th><span data-i18n="th_price">Fiyat</span> <small id="priceUnit"></small></th>
+              <th>
+                <span data-i18n="th_price">Fiyat</span>
+                <select id="priceGramSelect" aria-label="Gram fiyatı birimi">
+                  <option value="eur_g" data-i18n="opt_eur_g">EUR / gram</option>
+                  <option value="usd_g" data-i18n="opt_usd_g">Amerikan Doları / gram</option>
+                  <option value="try_g" data-i18n="opt_try_g">Türk lirası / gram</option>
+                </select>
+              </th>
               <th data-i18n="th_w">7 Gün</th>
               <th data-i18n="th_m">30 Gün</th>
               <th data-i18n="th_y">1 Yıl</th>
