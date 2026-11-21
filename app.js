@@ -2,11 +2,11 @@
 
 const OZ_G = 31.1034768;
 const METALS = ["gold", "silver", "platinum", "palladium", "copper"];
-const FX_SERIES = ["eur", "usd", "try"];
+const CURRENCIES = ["usd", "eur", "try"];
 const SD_METALS = ["gold", "silver", "platinum"];
 const COLORS = {
   gold: "#C9A227", silver: "#8A97A6", platinum: "#4F7CAC", palladium: "#8A63B8", copper: "#C1652F",
-  eur: "#2563EB", usd: "#16A34A", try: "#DC2626"
+  usd: "#16A34A", eur: "#2563EB", try: "#DC2626"
 };
 const COMP_COLORS = {
   mine_production: "#2E7D5B", recycling: "#7BC0A0",
@@ -20,8 +20,7 @@ const I18N = {
     title: "Değerli ve Stratejik Metaller Piyasa Panosu",
     subtitle: "Altın, gümüş, platin, paladyum ve bakır için günlük güncellenen fiyatlar ve göstergeler",
     gold: "Altın", silver: "Gümüş", platinum: "Platin", palladium: "Paladyum", copper: "Bakır",
-    eur: "Euro (EUR)", usd: "Dolar (USD)", try: "TL (TRY)",
-    fx_eur: "Euro (EUR)", fx_usd: "Dolar (USD)", fx_try: "TL (TRY)",
+    usd: "Dolar (USD)", eur: "Euro (EUR)", try: "TL (TRY)",
     unit_usd_oz: "Ons USD", unit_try_g: "Gram TRY", unit_eur_g: "Gram EUR",
     unit_long_usd_oz: "USD / ons", unit_long_try_g: "TRY / gram", unit_long_eur_g: "EUR / gram",
     card_ratio: "Altın / Gümüş Rasyosu",
@@ -33,8 +32,8 @@ const I18N = {
     th_cmp: "Grafik", th_metal: "Metal", th_price: "Fiyat", th_w: "7 Gün", th_m: "30 Gün", th_y: "1 Yıl",
     th_avg: "5Y Ortalama", th_vs: "5Y Ort.'a Göre", th_other: "Diğer birimler (USD)",
     sec_chart: "Karşılaştırmalı Performans",
-    chart_sub: "Seçilen metaller dönem başında 100'e eşitlenir; seçili birim kullanılır. Seçilen kurlar seçili birime göre endekslenir.",
-    chart_hint: "Grafikte görmek için tablodan en az bir metal veya yukarıdan bir kur seçin.",
+    chart_sub: "Seçilen metaller dönem başında 100'e eşitlenir; seçili birim kullanılır.",
+    chart_hint: "Grafikte görmek için tablodan en az bir metal seçin.",
     p_1m: "1A", p_6m: "6A", p_1y: "1Y", p_5y: "5Y",
     index_axis: "Endeks (başlangıç = 100)",
     sec_sd: "Arz – Talep Dengesi (2021–2025)",
@@ -59,8 +58,7 @@ const I18N = {
     title: "Precious & Strategic Metals Market Dashboard",
     subtitle: "Daily updated prices and indicators for gold, silver, platinum, palladium and copper",
     gold: "Gold", silver: "Silver", platinum: "Platinum", palladium: "Palladium", copper: "Copper",
-    eur: "Euro (EUR)", usd: "US Dollar (USD)", try: "Turkish Lira (TRY)",
-    fx_eur: "Euro (EUR)", fx_usd: "US Dollar (USD)", fx_try: "Turkish Lira (TRY)",
+    usd: "US Dollar (USD)", eur: "Euro (EUR)", try: "Turkish Lira (TRY)",
     unit_usd_oz: "Oz USD", unit_try_g: "Gram TRY", unit_eur_g: "Gram EUR",
     unit_long_usd_oz: "USD / oz", unit_long_try_g: "TRY / gram", unit_long_eur_g: "EUR / gram",
     card_ratio: "Gold / Silver Ratio",
@@ -72,8 +70,8 @@ const I18N = {
     th_cmp: "Chart", th_metal: "Metal", th_price: "Price", th_w: "7 Days", th_m: "30 Days", th_y: "1 Year",
     th_avg: "5Y Average", th_vs: "vs 5Y Avg.", th_other: "Other units (USD)",
     sec_chart: "Comparative Performance",
-    chart_sub: "Selected metals are rebased to 100 at the start of the period, in the selected unit. Selected currencies are rebased in the selected unit.",
-    chart_hint: "Select at least one metal in the table or a currency above to show it on the chart.",
+    chart_sub: "Selected metals are rebased to 100 at the start of the period, in the selected unit.",
+    chart_hint: "Select at least one metal in the table to show it on the chart.",
     p_1m: "1M", p_6m: "6M", p_1y: "1Y", p_5y: "5Y",
     index_axis: "Index (start = 100)",
     sec_sd: "Supply – Demand Balance (2021–2025)",
@@ -106,7 +104,6 @@ const state = {
   unit: ["usd_oz", "try_g", "eur_g"].includes(store.get("mp_unit", "usd_oz")) ? store.get("mp_unit", "usd_oz") : "usd_oz",
   period: "1y",
   selected: new Set(["gold", "silver"]),
-  selectedFx: new Set(),
   sdMetal: "gold",
   tab: store.get("mp_tab", "market") === "links" ? "links" : "market"
 };
@@ -174,9 +171,6 @@ function applyI18n() {
   mark("[data-period]", "period", state.period);
   mark("[data-sd]", "sd", state.sdMetal);
   mark("[data-tab]", "tab", state.tab);
-  document.querySelectorAll("input[type=checkbox][data-fx]").forEach((cb) => {
-    cb.checked = state.selectedFx.has(cb.dataset.fx);
-  });
   $("tab-market").hidden = state.tab !== "market";
   $("tab-links").hidden = state.tab !== "links";
   setText("priceUnit", `(${t("unit_long_" + state.unit)})`);
@@ -198,6 +192,117 @@ function renderCards() {
   const up = new Date(DATA.updated);
   setText("updatedVal", isNaN(up) ? "–" : up.toLocaleString(locale(), { dateStyle: "medium", timeStyle: "short" }));
   setText("updatedSub", t("data_date", { d: new Date(DATA.last_date).toLocaleDateString(locale(), { dateStyle: "medium" }) }));
+}
+
+/* ---------- yardımcı: kur değişimleri ve fiyatları (data.json eski de olsa çalışır) ---------- */
+function computeChangesFromSeries(arr, dates) {
+  if (!Array.isArray(arr) || !arr.length) return { w: null, m: null, y: null, avg5y: null, vs_avg5y: null };
+  const pts = [];
+  for (let i = 0; i < arr.length; i++) {
+    const v = arr[i];
+    if (v != null && isFinite(v)) pts.push({ d: new Date(dates[i]), v });
+  }
+  if (!pts.length) return { w: null, m: null, y: null, avg5y: null, vs_avg5y: null };
+  const last = pts[pts.length - 1];
+  const pctDiff = (ref) => (!ref || ref.v === 0 ? null : +((last.v / ref.v - 1) * 100).toFixed(2));
+  const pastAt = (days) => {
+    const cutoff = last.d.getTime() - days * 86400000;
+    let found = null;
+    for (const p of pts) { if (p.d.getTime() <= cutoff) found = p; else break; }
+    return found;
+  };
+  const fiveYCut = last.d.getTime() - (5 * 365 + 1) * 86400000;
+  const fiveYPts = pts.filter((p) => p.d.getTime() >= fiveYCut);
+  const avg = fiveYPts.length ? fiveYPts.reduce((acc, p) => acc + p.v, 0) / fiveYPts.length : null;
+  return {
+    w: pctDiff(pastAt(7)),
+    m: pctDiff(pastAt(30)),
+    y: pctDiff(pastAt(365)),
+    avg5y: avg != null ? +avg.toFixed(4) : null,
+    vs_avg5y: avg ? +((last.v / avg - 1) * 100).toFixed(2) : null
+  };
+}
+
+function getCurrencyRow(code) {
+  const fx = DATA.fx || {};
+  const u = fx.usdtry;
+  const eu = fx.eurusd;
+  const et = fx.eurtry ?? (u != null && eu != null ? u * eu : null);
+
+  let priceObj = DATA.currencies?.[code]?.price;
+  if (!priceObj) {
+    if (code === "usd") priceObj = { usd_oz: 1, try_g: u, eur_g: eu ? 1 / eu : null };
+    if (code === "eur") priceObj = { usd_oz: eu, try_g: et, eur_g: 1 };
+    if (code === "try") priceObj = { usd_oz: u ? 1 / u : null, try_g: 1, eur_g: et ? 1 / et : null };
+  }
+
+  let chObj = DATA.currencies?.[code]?.changes?.[state.unit];
+  if (!chObj && DATA.history?.dates?.length) {
+    const h = DATA.history;
+    const len = h.dates.length;
+    const series = Array.from({ length: len }, (_, i) => {
+      const hu = h.usdtry?.[i];
+      const heu = h.eurusd?.[i];
+      const het = h.eurtry?.[i] ?? (hu != null && heu != null ? hu * heu : null);
+      if (state.unit === "usd_oz") {
+        if (code === "usd") return 1;
+        if (code === "eur") return heu;
+        if (code === "try") return hu ? 1 / hu : null;
+      }
+      if (state.unit === "try_g") {
+        if (code === "try") return 1;
+        if (code === "usd") return hu;
+        if (code === "eur") return het;
+      }
+      if (state.unit === "eur_g") {
+        if (code === "eur") return 1;
+        if (code === "usd") return heu ? 1 / heu : null;
+        if (code === "try") return het ? 1 / het : null;
+      }
+      return null;
+    });
+    chObj = computeChangesFromSeries(series, h.dates);
+  }
+
+  const tickerMap = { usd: "USD", eur: "EUR/USD", try: "TRY" };
+  const otherMap = {
+    usd: u != null ? `USD/TRY ${fmtNum(u, 2)}` : "–",
+    eur: et != null ? `EUR/TRY ${fmtNum(et, 2)}` : "–",
+    try: u != null ? `1/$ ${fmtNum(1 / u, 4)}` : "–"
+  };
+
+  return {
+    ticker: DATA.currencies?.[code]?.ticker || tickerMap[code],
+    price: priceObj?.[state.unit],
+    ch: chObj || {},
+    other: otherMap[code]
+  };
+}
+
+function currencySeries(code) {
+  const h = DATA.history;
+  const len = h.dates?.length || 0;
+  return Array.from({ length: len }, (_, i) => {
+    const hu = h.usdtry?.[i];
+    const heu = h.eurusd?.[i];
+    const het = h.eurtry?.[i] ?? (hu != null && heu != null ? hu * heu : null);
+    if (state.unit === "usd_oz") {
+      if (code === "usd") return 1;
+      if (code === "eur") return heu;
+      if (code === "try") return hu ? 1 / hu : null;
+    }
+    if (state.unit === "try_g") {
+      if (code === "try") return 1;
+      if (code === "usd") return hu;
+      if (code === "eur") return het;
+    }
+    if (state.unit === "eur_g") {
+      if (code === "eur") return 1;
+      if (code === "usd") return heu ? 1 / heu : null;
+      if (code === "try") return het ? 1 / het : null;
+    }
+    return null;
+  });
 }
 
 /* ---------- tablo ---------- */
@@ -224,6 +329,22 @@ function renderTable() {
       <td class="muted">${other}</td>`;
     tb.appendChild(tr);
   }
+
+  for (const c of CURRENCIES) {
+    const row = getCurrencyRow(c);
+    const ch = row.ch || {};
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td><input type="checkbox" data-metal="${c}" ${state.selected.has(c) ? "checked" : ""} aria-label="${t(c)}"></td>
+      <td class="metal"><span class="dot" style="background:${COLORS[c]}"></span>${t(c)}<small>${row.ticker}</small></td>
+      <td><strong>${fmtPrice(row.price, state.unit)}</strong></td>
+      ${["w", "m", "y"].map((k) => `<td class="${pctClass(ch[k])}">${fmtPct(ch[k])}</td>`).join("")}
+      <td>${fmtPrice(ch.avg5y, state.unit)}</td>
+      <td class="${pctClass(ch.vs_avg5y)}">${fmtPct(ch.vs_avg5y)}</td>
+      <td class="muted">${row.other}</td>`;
+    tb.appendChild(tr);
+  }
+
   tb.querySelectorAll("input[type=checkbox]").forEach((cb) => cb.addEventListener("change", (e) => {
     const m = e.target.dataset.metal;
     if (e.target.checked) state.selected.add(m); else state.selected.delete(m);
@@ -233,6 +354,7 @@ function renderTable() {
 
 /* ---------- karşılaştırma grafiği ---------- */
 function unitSeries(m) {
+  if (CURRENCIES.includes(m)) return currencySeries(m);
   const h = DATA.history;
   const s = h.usd_oz[m] || [];
   return s.map((v, i) => {
@@ -242,42 +364,6 @@ function unitSeries(m) {
     if (state.unit === "try_g") { const fx = h.usdtry[i]; return fx == null ? null : g * fx; }
     const e = h.eurusd[i];
     return e == null || e === 0 ? null : g / e;
-  });
-}
-
-function fxSeries(fxCode) {
-  const h = DATA.history;
-  const len = h.dates?.length || 0;
-  const usdtry = h.usdtry || [];
-  const eurusd = h.eurusd || [];
-  const eurtry = h.eurtry || [];
-
-  const getEurTry = (i) => {
-    if (eurtry[i] != null && isFinite(eurtry[i])) return eurtry[i];
-    if (usdtry[i] != null && eurusd[i] != null) return usdtry[i] * eurusd[i];
-    return null;
-  };
-
-  return Array.from({ length: len }, (_, i) => {
-    const u = usdtry[i];
-    const eu = eurusd[i];
-    const et = getEurTry(i);
-    if (state.unit === "usd_oz") {
-      if (fxCode === "usd") return 1;
-      if (fxCode === "eur") return eu != null && isFinite(eu) ? eu : null;
-      if (fxCode === "try") return u != null && u !== 0 && isFinite(u) ? 1 / u : null;
-    }
-    if (state.unit === "try_g") {
-      if (fxCode === "try") return 1;
-      if (fxCode === "usd") return u != null && isFinite(u) ? u : null;
-      if (fxCode === "eur") return et != null && isFinite(et) ? et : null;
-    }
-    if (state.unit === "eur_g") {
-      if (fxCode === "eur") return 1;
-      if (fxCode === "usd") return eu != null && eu !== 0 && isFinite(eu) ? 1 / eu : null;
-      if (fxCode === "try") return et != null && et !== 0 && isFinite(et) ? 1 / et : null;
-    }
-    return null;
   });
 }
 
@@ -293,7 +379,8 @@ function renderLine() {
   if (start < 0) start = 0;
   const labels = dates.slice(start);
 
-  const metalDatasets = METALS.filter((m) => state.selected.has(m) && h.usd_oz[m]).map((m) => {
+  const allItems = [...METALS, ...CURRENCIES];
+  const datasets = allItems.filter((m) => state.selected.has(m)).map((m) => {
     const s = unitSeries(m).slice(start);
     const base = s.find((v) => v != null && v > 0);
     return {
@@ -303,19 +390,6 @@ function renderLine() {
       borderWidth: 2, pointRadius: 0, pointHoverRadius: 3, tension: 0.15, spanGaps: true
     };
   });
-
-  const fxDatasets = FX_SERIES.filter((fx) => state.selectedFx.has(fx)).map((fx) => {
-    const s = fxSeries(fx).slice(start);
-    const base = s.find((v) => v != null && v > 0);
-    return {
-      label: t(fx),
-      data: s.map((v) => (v == null || !base ? null : +(v / base * 100).toFixed(2))),
-      borderColor: COLORS[fx], backgroundColor: COLORS[fx],
-      borderWidth: 2, borderDash: [5, 4], pointRadius: 0, pointHoverRadius: 3, tension: 0.15, spanGaps: true
-    };
-  });
-
-  const datasets = [...metalDatasets, ...fxDatasets];
   $("chartHint").hidden = datasets.length > 0;
 
   const opts = baseOptions();
@@ -429,11 +503,6 @@ function bindEvents() {
   document.querySelectorAll("[data-unit]").forEach((b) => b.addEventListener("click", () => {
     state.unit = b.dataset.unit; store.set("mp_unit", state.unit);
     applyI18n(); renderTable(); renderLine();
-  }));
-  document.querySelectorAll("input[type=checkbox][data-fx]").forEach((cb) => cb.addEventListener("change", (e) => {
-    const fx = e.target.dataset.fx;
-    if (e.target.checked) state.selectedFx.add(fx); else state.selectedFx.delete(fx);
-    renderLine();
   }));
   document.querySelectorAll("[data-period]").forEach((b) => b.addEventListener("click", () => {
     state.period = b.dataset.period; applyI18n(); renderLine();
