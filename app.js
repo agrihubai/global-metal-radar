@@ -30,7 +30,7 @@ const I18N = {
     sec_prices: "Fiyatlar ve Değişimler",
     prices_note: "Değişimler seçili birim üzerinden hesaplanır. Karşılaştırma grafiğine eklemek için kutuyu işaretleyin. Bakır fiyatı libreden onsa çevrilmiştir.",
     th_cmp: "Grafik", th_metal: "Metal", th_price: "Fiyat", th_w: "7 Gün", th_m: "30 Gün", th_y: "1 Yıl",
-    th_avg: "5Y Ortalama", th_vs: "5Y Ort.'a Göre", th_other: "Diğer birimler (USD)",
+    th_avg: "5Y Ortalama", th_vs: "5Y Ort.'a Göre", th_close_chg: "Son Kapanış / Günlük Değişim",
     sec_chart: "Karşılaştırmalı Performans",
     chart_sub: "Seçilen metaller dönem başında 100'e eşitlenir; seçili birim kullanılır.",
     chart_hint: "Grafikte görmek için tablodan en az bir metal seçin.",
@@ -70,7 +70,7 @@ const I18N = {
     sec_prices: "Prices & Changes",
     prices_note: "Changes are calculated in the selected unit. Tick a box to add a metal to the comparison chart. Copper is converted from pounds to ounces.",
     th_cmp: "Chart", th_metal: "Metal", th_price: "Price", th_w: "7 Days", th_m: "30 Days", th_y: "1 Year",
-    th_avg: "5Y Average", th_vs: "vs 5Y Avg.", th_other: "Other units (USD)",
+    th_avg: "5Y Average", th_vs: "vs 5Y Avg.", th_close_chg: "Last Close / Daily Change",
     sec_chart: "Comparative Performance",
     chart_sub: "Selected metals are rebased to 100 at the start of the period, in the selected unit.",
     chart_hint: "Select at least one metal in the table to show it on the chart.",
@@ -198,7 +198,7 @@ function renderCards() {
 }
 
 /* ---------- tablo ---------- */
-function getGramPriceValue(p, m) {
+function getGramPriceValue(p) {
   if (p?.[state.gramUnit] != null) return p[state.gramUnit];
   const oz = p?.usd_oz;
   if (oz == null) return null;
@@ -210,6 +210,16 @@ function getGramPriceValue(p, m) {
   return null;
 }
 
+function getDailyChange(m, ch) {
+  if (ch?.d != null) return ch.d;
+  const s = unitSeries(m);
+  const valid = s.filter((v) => v != null && isFinite(v) && v !== 0);
+  if (valid.length < 2) return null;
+  const last = valid[valid.length - 1];
+  const prev = valid[valid.length - 2];
+  return +((last / prev - 1) * 100).toFixed(2);
+}
+
 function renderTable() {
   const tb = $("priceBody");
   tb.innerHTML = "";
@@ -219,10 +229,10 @@ function renderTable() {
     if (!md) continue;
     const ch = md.changes?.[state.unit] || {};
     const p = md.price || {};
-    const gramVal = getGramPriceValue(p, m);
-    const other = m === "copper"
-      ? `$${fmtNum(p.usd_lb, 3)}/lb · $${fmtNum(p.usd_kg, 0)}/kg`
-      : `$${fmtNum(p.usd_g, 2)}/g · $${fmtNum(p.usd_kg, 0)}/kg`;
+    const gramVal = getGramPriceValue(p);
+    const dailyChg = getDailyChange(m, ch);
+    const closePriceStr = fmtPrice(p[state.unit], state.unit);
+    const closeDailyStr = `${closePriceStr} (${fmtPct(dailyChg)})`;
     const tr = document.createElement("tr");
     tr.innerHTML = `
       <td><input type="checkbox" data-metal="${m}" ${state.selected.has(m) ? "checked" : ""} aria-label="${t(m)}"></td>
@@ -231,7 +241,7 @@ function renderTable() {
       ${["w", "m", "y"].map((k) => `<td class="${pctClass(ch[k])}">${fmtPct(ch[k])}</td>`).join("")}
       <td>${fmtPrice(ch.avg5y, state.unit)}</td>
       <td class="${pctClass(ch.vs_avg5y)}">${fmtPct(ch.vs_avg5y)}</td>
-      <td class="muted">${other}</td>`;
+      <td class="${pctClass(dailyChg)}">${closeDailyStr}</td>`;
     tb.appendChild(tr);
   }
   tb.querySelectorAll("input[type=checkbox]").forEach((cb) => cb.addEventListener("change", (e) => {

@@ -25,7 +25,7 @@ METALS = {
     "copper": "HG=F",  # Yahoo'da USD / libre
 }
 FX = {"usdtry": "USDTRY=X", "eurusd": "EURUSD=X", "eurtry": "EURTRY=X"}
-PERIODS = {"w": 7, "m": 30, "y": 365}
+PERIODS = {"d": 1, "w": 7, "m": 30, "y": 365}
 FIVE_Y = timedelta(days=5 * 365 + 1)
 OUT = Path(__file__).resolve().with_name("data.json")
 START = "2014-12-01"  # aylik seri 2015 basindan itibaren
@@ -87,10 +87,11 @@ def download():
 def series_changes(s):
     s = s.dropna()
     if s.empty:
-        return {"w": None, "m": None, "y": None, "avg5y": None, "vs_avg5y": None}
+        return {"d": None, "w": None, "m": None, "y": None, "avg5y": None, "vs_avg5y": None}
     last_d, last = s.index[-1], s.iloc[-1]
     out = {}
-    for key, days in PERIODS.items():
+    out["d"] = pct(last, s.iloc[-2]) if len(s) >= 2 else None
+    for key, days in (("w", 7), ("m", 30), ("y", 365)):
         past = s[s.index <= last_d - timedelta(days=days)]
         out[key] = pct(last, past.iloc[-1]) if len(past) else None
     avg = s[s.index >= last_d - FIVE_Y].mean()
