@@ -29,7 +29,7 @@ const I18N = {
     card_updated: "Son güncelleme", data_date: "Piyasa verisi: {d}",
     sec_prices: "Fiyatlar ve Değişimler",
     prices_note: "Değişimler seçili birim üzerinden hesaplanır. Karşılaştırma grafiğine eklemek için kutuyu işaretleyin. Bakır fiyatı libreden onsa çevrilmiştir.",
-    th_cmp: "Grafik", th_metal: "Metal", th_price: "Fiyat", th_w: "7 Gün", th_m: "30 Gün", th_y: "1 Yıl",
+    th_cmp: "Grafik", th_metal: "Metal", th_price: "Fiyat", th_ytd: "Yılbaşından Bugüne", th_w: "7 Gün", th_m: "30 Gün", th_y: "1 Yıl",
     th_avg: "5Y Ortalama", th_vs: "5Y Ort.'a Göre", th_close_chg: "Son Kapanış / Günlük Değişim",
     sec_chart: "Karşılaştırmalı Performans",
     chart_sub: "Seçilen metaller dönem başında 100'e eşitlenir; seçili birim kullanılır.",
@@ -69,7 +69,7 @@ const I18N = {
     card_updated: "Last update", data_date: "Market data: {d}",
     sec_prices: "Prices & Changes",
     prices_note: "Changes are calculated in the selected unit. Tick a box to add a metal to the comparison chart. Copper is converted from pounds to ounces.",
-    th_cmp: "Chart", th_metal: "Metal", th_price: "Price", th_w: "7 Days", th_m: "30 Days", th_y: "1 Year",
+    th_cmp: "Chart", th_metal: "Metal", th_price: "Price", th_ytd: "Year to Date", th_w: "7 Days", th_m: "30 Days", th_y: "1 Year",
     th_avg: "5Y Average", th_vs: "vs 5Y Avg.", th_close_chg: "Last Close / Daily Change",
     sec_chart: "Comparative Performance",
     chart_sub: "Selected metals are rebased to 100 at the start of the period, in the selected unit.",
@@ -210,6 +210,11 @@ function getGramPriceValue(p) {
   return null;
 }
 
+function arrowMark(v) {
+  if (v == null || !isFinite(v) || v === 0) return "";
+  return v > 0 ? " ▲" : " ▼";
+}
+
 function getDailyChange(m, ch) {
   if (ch?.d != null) return ch.d;
   const s = unitSeries(m);
@@ -218,6 +223,33 @@ function getDailyChange(m, ch) {
   const last = valid[valid.length - 1];
   const prev = valid[valid.length - 2];
   return +((last / prev - 1) * 100).toFixed(2);
+}
+
+function getYtdChange(m, ch) {
+  if (ch?.ytd != null) return ch.ytd;
+  const h = DATA?.history;
+  const s = unitSeries(m);
+  if (!h?.dates?.length || !s.length) return null;
+  const lastIdx = s.length - 1;
+  const lastVal = s[lastIdx];
+  if (lastVal == null || !isFinite(lastVal) || lastVal === 0) return null;
+  const curYear = String(h.dates[lastIdx]).slice(0, 4);
+  const yrStartStr = `${curYear}-01-01`;
+  let refVal = null;
+  for (let i = 0; i < h.dates.length; i++) {
+    if (h.dates[i] < yrStartStr && s[i] != null && isFinite(s[i]) && s[i] !== 0) {
+      refVal = s[i];
+    }
+  }
+  if (refVal == null) {
+    for (let i = 0; i < h.dates.length; i++) {
+      if (h.dates[i] >= yrStartStr && s[i] != null && isFinite(s[i]) && s[i] !== 0) {
+        refVal = s[i];
+        break;
+      }
+    }
+  }
+  return refVal == null ? null : +((lastVal / refVal - 1) * 100).toFixed(2);
 }
 
 function renderTable() {
@@ -230,15 +262,16 @@ function renderTable() {
     const ch = md.changes?.[state.unit] || {};
     const p = md.price || {};
     const gramVal = getGramPriceValue(p);
+    const ytdChg = getYtdChange(m, ch);
     const dailyChg = getDailyChange(m, ch);
-    const arrow = dailyChg == null || !isFinite(dailyChg) || dailyChg === 0 ? "" : dailyChg > 0 ? " ▲" : " ▼";
     const closePriceStr = fmtPrice(p[state.unit], state.unit);
-    const closeDailyStr = `${closePriceStr} (${fmtPct(dailyChg)}${arrow})`;
+    const closeDailyStr = `${closePriceStr} (${fmtPct(dailyChg)}${arrowMark(dailyChg)})`;
     const tr = document.createElement("tr");
     tr.innerHTML = `
       <td><input type="checkbox" data-metal="${m}" ${state.selected.has(m) ? "checked" : ""} aria-label="${t(m)}"></td>
       <td class="metal"><span class="dot" style="background:${COLORS[m]}"></span>${t(m)}<small>${md.ticker}</small></td>
       <td><strong>${fmtPrice(gramVal, state.gramUnit)}</strong></td>
+      <td class="${pctClass(ytdChg)}">${fmtPct(ytdChg)}${arrowMark(ytdChg)}</td>
       ${["w", "m", "y"].map((k) => `<td class="${pctClass(ch[k])}">${fmtPct(ch[k])}</td>`).join("")}
       <td>${fmtPrice(ch.avg5y, state.unit)}</td>
       <td class="${pctClass(ch.vs_avg5y)}">${fmtPct(ch.vs_avg5y)}</td>

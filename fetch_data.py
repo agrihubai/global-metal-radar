@@ -87,10 +87,17 @@ def download():
 def series_changes(s):
     s = s.dropna()
     if s.empty:
-        return {"d": None, "w": None, "m": None, "y": None, "avg5y": None, "vs_avg5y": None}
+        return {"d": None, "ytd": None, "w": None, "m": None, "y": None, "avg5y": None, "vs_avg5y": None}
     last_d, last = s.index[-1], s.iloc[-1]
     out = {}
     out["d"] = pct(last, s.iloc[-2]) if len(s) >= 2 else None
+    yr_start = pd.Timestamp(year=last_d.year, month=1, day=1)
+    prev_yr = s[s.index < yr_start]
+    if not prev_yr.empty:
+        out["ytd"] = pct(last, prev_yr.iloc[-1])
+    else:
+        cur_yr = s[s.index >= yr_start]
+        out["ytd"] = pct(last, cur_yr.iloc[0]) if len(cur_yr) else None
     for key, days in (("w", 7), ("m", 30), ("y", 365)):
         past = s[s.index <= last_d - timedelta(days=days)]
         out[key] = pct(last, past.iloc[-1]) if len(past) else None
